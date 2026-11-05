@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generator Modul Ajar Kurikulum Merdeka - Deep Learning Project</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      body {
+        background-color: white !important;
+        color: black !important;
+      }
+      .print-shadow-none {
+        box-shadow: none !important;
+        border: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // Icon helper component (Safe DOM isolation for Lucide)
+    const Icon = ({ name, size = 18, className = "" }) => {
+      const spanRef = useRef(null);
+      useEffect(() => {
+        if (spanRef.current && window.lucide) {
+          spanRef.current.innerHTML = `<i data-lucide="${name}" style="width: ${size}px; height: ${size}px;" class="inline-block"></i>`;
+          window.lucide.createIcons();
+        }
+      }, [name, size]);
+      return <span ref={spanRef} className={`inline-flex items-center justify-center ${className}`}></span>;
+    };
+
+    const INITIAL_FORM_DATA = {
+      satuanPendidikan: "SMK Negeri 1 Amarasi Selatan",
+      konsentrasiKeahlian: "Agribisnis Tanaman Pangan dan Hortikultura",
+      mapelUtama: "Konsentrasi Keahlian Agribisnis Tanaman Pangan dan Hortikultura",
+      temaProyek: "Pengembangan Budidaya Hortikultura Organik Berkelanjutan Berbasis Digital & Pemasaran Modern",
+      kelasFase: "Kelas XI / Fase F",
+      semester: "Ganjil",
+      alokasiWaktu: "4 Minggu / 36 JP",
+      cpUtama: "Pada akhir fase F, peserta didik mampu menerapkan teknik budidaya tanaman pangan dan hortikultura secara berkelanjutan, mengelola kesuburan tanah, mengendalikan OPT, memanen, serta mengelola pascamanen dan pemasaran hasil pertanian modern.",
+      mapelKolaborasi: [
+        { mapel: "Agribisnis Tanaman Hortikultura", kontribusi: "Perencanaan teknis budidaya, penyiapan media, penanaman, dan perawatan tanaman hortikultura.", tp: "Peserta didik mampu merancang dan menerapkan teknik budidaya tanaman hortikultura organik secara efektif (C6)." },
+        { mapel: "Matematika", kontribusi: "Perhitungan analisis kebutuhan nutrisi, perkiraan hasil panen, dan analisis kelayakan usaha (R/C Ratio).", tp: "Peserta didik mampu menghitung efisiensi pembiayaan dan formulasi nutrisi tanaman secara presisi (C4)." },
+        { mapel: "Informatika / Digital Marketing", kontribusi: "Pembuatan media promosi digital, branding produk, dan pengelolaan toko online.", tp: "Peserta didik mampu merancang strategi pemasaran digital berbasis media sosial dan e-commerce (C6)." },
+        { mapel: "Bahasa Indonesia", kontribusi: "Penyusunan laporan ilmiah hasil proyek dan pembuatan teks deskripsi/promosi produk.", tp: "Peserta didik mampu menyusun laporan hasil proyek berbasis bukti empiris dengan struktur bahasa yang baku (C5)." },
+        { mapel: "Pancasila & Kewarganegaraan", kontribusi: "Penerapan etika bisnis ramah lingkungan dan kerja sama tim dalam kearifan lokal.", tp: "Peserta didik mampu menginternalisasi nilai gotong royong dan tanggung jawab lingkungan dalam usaha pertanian (A5)." }
+      ],
+      dimensiProfil: [
+        "Keimanan & Ketakwaan terhadap TYME",
+        "Penalaran Kritis",
+        "Kreativitas",
+        "Kolaborasi",
+        "Kemandirian"
+      ],
+      timPenyusun: [
+        { nama: "Imanuel", nip: "1977" },
+        { nama: "Imanuel M", nip: "1988" },
+        { nama: "Imanuel Maniyeni", nip: "1978" }
+      ],
+      kepalaSekolah: "Rizal B. Ndolu, S.Pi.,MM",
+      nipKepalaSekolah: "197205252006041017",
+      tanggalPenyusunan: "10 Juli 2025"
+    };
+
+    function App() {
+      const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+      const [generatedModule, setGeneratedModule] = useState(null);
+      const [isGenerating, setIsGenerating] = useState(false);
+      const [activeTab, setActiveTab] = useState("form");
+      const [copied, setCopied] = useState(false);
+
+      const handleInputChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+      };
+
+      const handleMapelChange = (index, field, value) => {
+        const updated = [...formData.mapelKolaborasi];
+        updated[index][field] = value;
+        setFormData(prev => ({ ...prev, mapelKolaborasi: updated }));
+      };
+
+      const addMapel = () => {
+        setFormData(prev => ({
+          ...prev,
+          mapelKolaborasi: [...prev.mapelKolaborasi, { mapel: "", kontribusi: "", tp: "" }]
+        }));
+      };
+
+      const removeMapel = (index) => {
+        setFormData(prev => ({
+          ...prev,
+          mapelKolaborasi: prev.mapelKolaborasi.filter((_, i) => i !== index)
+        }));
+      };
+
+      const handleTimChange = (index, field, value) => {
+        const updated = [...formData.timPenyusun];
+        updated[index][field] = value;
+        setFormData(prev => ({ ...prev, timPenyusun: updated }));
+      };
+
+      const addTim = () => {
+        setFormData(prev => ({
+          ...prev,
+          timPenyusun: [...prev.timPenyusun, { nama: "", nip: "" }]
+        }));
+      };
+
+      const removeTim = (index) => {
+        setFormData(prev => ({
+          ...prev,
+          timPenyusun: prev.timPenyusun.filter((_, i) => i !== index)
+        }));
+      };
+
+      const toggleDimensi = (dim) => {
+        setFormData(prev => {
+          const current = prev.dimensiProfil;
+          if (current.includes(dim)) {
+            return { ...prev, dimensiProfil: current.filter(d => d !== dim) };
+          } else {
+            return { ...prev, dimensiProfil: [...current, dim] };
+          }
+        });
+      };
+
+      // AI Recommendation for Tema Proyek based on CP, Mapel Utama, Konsentrasi, and Kelas/Fase
+      const handleAiRecommendTema = () => {
+        const generated = `Inovasi Proyek Kolaboratif ${formData.konsentrasiKeahlian} Berbasis Pangan Sehat, Smart Farming & Digital Marketing (${formData.kelasFase})`;
+        setFormData(prev => ({ ...prev, temaProyek: generated }));
+      };
+
+      // AI Recommendation for Matriks Mapel based on CP, Tema, and Kelas/Fase
+      const handleAiRecommendMapel = () => {
+        const recommended = [
+          { mapel: formData.mapelUtama, kontribusi: "Perencanaan teknis budidaya, penyiapan media, penanaman, dan perawatan tanaman hortikultura.", tp: "Peserta didik mampu merancang dan menerapkan teknik budidaya tanaman hortikultura organik secara efektif (C6)." },
+          { mapel: "Matematika", kontribusi: "Perhitungan analisis kebutuhan nutrisi, perkiraan hasil panen, dan analisis kelayakan usaha (R/C Ratio).", tp: "Peserta didik mampu menghitung efisiensi pembiayaan dan formulasi nutrisi tanaman secara presisi (C4)." },
+          { mapel: "Informatika / Digital Marketing", kontribusi: "Pembuatan media promosi digital, branding produk, dan pengelolaan toko online.", tp: "Peserta didik mampu merancang strategi pemasaran digital berbasis media sosial dan e-commerce (C6)." },
+          { mapel: "Bahasa Indonesia", kontribusi: "Penyusunan laporan ilmiah hasil proyek dan pembuatan teks deskripsi/promosi produk.", tp: "Peserta didik mampu menyusun laporan hasil proyek berbasis bukti empiris dengan struktur bahasa yang baku (C5)." },
+          { mapel: "Pancasila & Kewarganegaraan", kontribusi: "Penerapan etika bisnis ramah lingkungan dan kerja sama tim dalam kearifan lokal.", tp: "Peserta didik mampu menginternalisasi nilai gotong royong dan tanggung jawab lingkungan dalam usaha pertanian (A5)." }
+        ];
+        setFormData(prev => ({ ...prev, mapelKolaborasi: recommended }));
+      };
+
+      const handleGenerate = () => {
+        setIsGenerating(true);
+        setTimeout(() => {
+          setGeneratedModule(true);
+          setIsGenerating(false);
+          setActiveTab("preview");
+        }, 1000);
+      };
+
+      const copyToClipboard = () => {
+        const content = document.getElementById("printable-module")?.innerText;
+        if (content) {
+          navigator.clipboard.writeText(content);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }
+      };
+
+      const downloadWord = () => {
+        const content = document.getElementById("printable-module")?.innerHTML;
+        const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Modul Ajar</title></head><body>${content}</body></html>`;
+        const blob = new Blob(['\ufeff' + html], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Modul_Ajar_Deep_Learning_SMKN1AmarasiSelatan.doc';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          if (a.parentNode) {
+            a.parentNode.removeChild(a);
+          }
+          URL.revokeObjectURL(url);
+        }, 100);
+      };
+
+      const handlePrint = () => {
+        window.print();
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          {/* Header */}
+          <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 no-print">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-600 rounded-lg">
+                  <Icon name="book-open" size={22} className="text-white" />
+                </div>
+                <div>
+                  <h1 className="font-bold text-lg leading-tight">Generator Modul Ajar Proyek Kolaborasi</h1>
+                  <p className="text-xs text-slate-400">SMK Negeri 1 Amarasi Selatan</p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setActiveTab("form")}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                    activeTab === "form" 
+                      ? "bg-blue-600 text-white" 
+                      : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  }`}
+                >
+                  <Icon name="edit-3" size={16} className="mr-1.5 inline" /> Input Data
+                </button>
+                <button
+                  onClick={() => {
+                    if (!generatedModule) handleGenerate();
+                    setActiveTab("preview");
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                    activeTab === "preview" 
+                      ? "bg-blue-600 text-white" 
+                      : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  }`}
+                >
+                  <Icon name="file-text" size={16} className="mr-1.5 inline" /> Modul Dokumen
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Body */}
+          <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:px-8 py-6">
+            {activeTab === "form" ? (
+              <div className="space-y-6">
+                {/* Intro Banner */}
+                <div className="bg-gradient-to-r from-slate-900 to-blue-900 text-white p-6 rounded-2xl shadow-lg border border-slate-700">
+                  <div className="max-w-3xl">
+                    <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs font-semibold uppercase tracking-wider border border-blue-400/30">
+                      Vokasi & Kolaboratif
+                    </span>
+                    <h2 className="text-2xl font-bold mt-2">Penyusun Modul Ajar Pembelajaran Mendalam</h2>
+                    <p className="text-slate-300 text-sm mt-2 leading-relaxed">
+                      Merancang alur pembelajaran terintegrasi <b>Mindful, Meaningful, & Joyful</b> melalui tahapan <b>Memahami, Mengaplikasi, dan Merefleksi</b> secara otomatis, saintifik, dan operasional.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Form Sections */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
+                  <h3 className="text-lg font-bold text-slate-900 border-b pb-3 flex items-center gap-2">
+                    <Icon name="school" className="text-blue-600" /> 1. Identitas Satuan & Proyek
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Satuan Pendidikan</label>
+                      <input 
+                        type="text" 
+                        value={formData.satuanPendidikan}
+                        onChange={(e) => handleInputChange("satuanPendidikan", e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Konsentrasi Keahlian</label>
+                      <input 
+                        type="text" 
+                        value={formData.konsentrasiKeahlian}
+                        onChange={(e) => handleInputChange("konsentrasiKeahlian", e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Mata Pelajaran Utama</label>
+                      <input 
+                        type="text" 
+                        value={formData.mapelUtama}
+                        onChange={(e) => handleInputChange("mapelUtama", e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Kelas / Fase / Semester</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input 
+                          type="text" 
+                          value={formData.kelasFase}
+                          onChange={(e) => handleInputChange("kelasFase", e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
+                        <input 
+                          type="text" 
+                          value={formData.semester}
+                          onChange={(e) => handleInputChange("semester", e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Alokasi Waktu</label>
+                      <input 
+                        type="text" 
+                        value={formData.alokasiWaktu}
+                        onChange={(e) => handleInputChange("alokasiWaktu", e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-xs font-bold text-slate-700 uppercase">Tema Proyek Kolaborasi</label>
+                        <button 
+                          onClick={handleAiRecommendTema}
+                          className="text-xs text-blue-600 font-bold hover:underline flex items-center gap-1"
+                        >
+                          <Icon name="sparkles" size={12} /> Minta AI Rekomendasikan
+                        </button>
+                      </div>
+                      <input 
+                        type="text" 
+                        value={formData.temaProyek}
+                        onChange={(e) => handleInputChange("temaProyek", e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Capaian Pembelajaran (CP Utama)</label>
+                    <textarea 
+                      rows={3}
+                      value={formData.cpUtama}
+                      onChange={(e) => handleInputChange("cpUtama", e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Mapel Kolaborasi */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
+                  <div className="flex flex-wrap justify-between items-center border-b pb-3 gap-2">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <Icon name="layers" className="text-blue-600" /> 2. Matriks Lintas Disiplin Ilmu (Minimal 3-5 Mapel)
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={handleAiRecommendMapel}
+                        className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg font-semibold text-xs hover:bg-indigo-100 flex items-center gap-1"
+                      >
+                        <Icon name="sparkles" size={14} /> Minta AI Rekomendasikan
+                      </button>
+                      <button 
+                        onClick={addMapel}
+                        className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg font-semibold text-xs hover:bg-blue-100 flex items-center gap-1"
+                      >
+                        <Icon name="plus" size={14} /> Tambah Mapel
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {formData.mapelKolaborasi.map((item, idx) => (
+                      <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 relative">
+                        <button 
+                          onClick={() => removeMapel(idx)}
+                          className="absolute top-3 right-3 text-slate-400 hover:text-red-600 text-xs"
+                          title="Hapus"
+                        >
+                          <Icon name="trash-2" size={16} />
+                        </button>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Mata Pelajaran Kolaborasi #{idx + 1}</label>
+                            <input 
+                              type="text" 
+                              value={item.mapel}
+                              onChange={(e) => handleMapelChange(idx, "mapel", e.target.value)}
+                              placeholder="Nama Mapel"
+                              className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Kontribusi dalam Proyek</label>
+                            <input 
+                              type="text" 
+                              value={item.kontribusi}
+                              onChange={(e) => handleMapelChange(idx, "kontribusi", e.target.value)}
+                              placeholder="Kontribusi fisik/konseptual"
+                              className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Tujuan Pembelajaran (ABCD + Bloom)</label>
+                            <input 
+                              type="text" 
+                              value={item.tp}
+                              onChange={(e) => handleMapelChange(idx, "tp", e.target.value)}
+                              placeholder="TP Spesifik Mapel"
+                              className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dimensi & Pengesahan */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Dimensi Profil Lulusan */}
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                    <h3 className="text-lg font-bold text-slate-900 border-b pb-3 flex items-center gap-2">
+                      <Icon name="award" className="text-blue-600" /> 3. Dimensi Profil Lulusan
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {[
+                        "Keimanan & Ketakwaan terhadap TYME",
+                        "Kewargaan",
+                        "Penalaran Kritis",
+                        "Kreativitas",
+                        "Kolaborasi",
+                        "Kemandirian",
+                        "Kesehatan",
+                        "Komunikasi"
+                      ].map((dim, i) => (
+                        <label key={i} className="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200">
+                          <input 
+                            type="checkbox" 
+                            checked={formData.dimensiProfil.includes(dim)}
+                            onChange={() => toggleDimensi(dim)}
+                            className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4"
+                          />
+                          <span>{dim}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pengesahan & Penyusun */}
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                    <h3 className="text-lg font-bold text-slate-900 border-b pb-3 flex items-center gap-2">
+                      <Icon name="users" className="text-blue-600" /> 4. Legitimasi & Penyusun
+                    </h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Kepala Sekolah & NIP</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <input 
+                            type="text" 
+                            value={formData.kepalaSekolah}
+                            onChange={(e) => handleInputChange("kepalaSekolah", e.target.value)}
+                            placeholder="Nama Kepala Sekolah"
+                            className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm"
+                          />
+                          <input 
+                            type="text" 
+                            value={formData.nipKepalaSekolah}
+                            onChange={(e) => handleInputChange("nipKepalaSekolah", e.target.value)}
+                            placeholder="NIP Kepala Sekolah"
+                            className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="block text-xs font-bold text-slate-600 uppercase">Tim Guru Penyusun</label>
+                          <button onClick={addTim} className="text-xs text-blue-600 font-semibold">+ Tambah Guru</button>
+                        </div>
+                        {formData.timPenyusun.map((guru, idx) => (
+                          <div key={idx} className="flex gap-2 mb-2">
+                            <input 
+                              type="text" 
+                              value={guru.nama}
+                              onChange={(e) => handleTimChange(idx, "nama", e.target.value)}
+                              placeholder="Nama Guru"
+                              className="w-1/2 px-3 py-1.5 border border-slate-300 rounded-lg text-sm"
+                            />
+                            <input 
+                              type="text" 
+                              value={guru.nip}
+                              onChange={(e) => handleTimChange(idx, "nip", e.target.value)}
+                              placeholder="NIP"
+                              className="w-1/2 px-3 py-1.5 border border-slate-300 rounded-lg text-sm"
+                            />
+                            {formData.timPenyusun.length > 1 && (
+                              <button onClick={() => removeTim(idx)} className="text-red-500 px-1">
+                                <Icon name="x" size={16} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Generate Button */}
+                <div className="text-center pt-4">
+                  <button
+                    onClick={handleGenerate}
+                    disabled={isGenerating}
+                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-base rounded-xl shadow-xl transition transform active:scale-95 flex items-center justify-center gap-2 mx-auto"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Icon name="loader-2" className="animate-spin" size={20} />
+                        <span>Membuat Modul Pembelajaran Mendalam...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="sparkles" size={20} />
+                        <span>Generate Modul Ajar Otomatis (BSKAP 046/2025)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Preview Tab */
+              <div className="space-y-6">
+                {/* Export Control Toolbar */}
+                <div className="bg-slate-900 text-white p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 no-print shadow-md">
+                  <div className="flex items-center gap-2">
+                    <Icon name="check-circle" className="text-emerald-400" />
+                    <span className="text-sm font-semibold">Modul Ajar Pembelajaran Mendalam Siap Cetak / Salin</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={copyToClipboard}
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-sm font-medium flex items-center gap-1.5 transition"
+                    >
+                      <Icon name="copy" size={16} />
+                      {copied ? "Tersalin ke Clipboard!" : "Salin ke Clipboard"}
+                    </button>
+                    <button
+                      onClick={downloadWord}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium flex items-center gap-1.5 transition"
+                    >
+                      <Icon name="download" size={16} />
+                      Unduh Word (.doc)
+                    </button>
+                    <button
+                      onClick={handlePrint}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium flex items-center gap-1.5 transition shadow"
+                    >
+                      <Icon name="printer" size={16} />
+                      Cetak / Simpan PDF
+                    </button>
+                  </div>
+                </div>
+
+                {/* Render Full Printable Document Container */}
+                <div id="printable-module" className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-300 text-slate-900 font-serif leading-relaxed print-shadow-none text-sm">
+                  
+                  {/* HEADER DOKUMEN */}
+                  <div className="text-center border-b-2 border-slate-900 pb-4 mb-6">
+                    <h2 className="text-xl font-bold uppercase tracking-wide">MODUL AJAR PEMBELAJARAN MENDALAM</h2>
+                    <h3 className="text-lg font-semibold text-slate-800 uppercase mt-1">PEMBELAJARAN PROYEK KOLABORASI LINTAS DISIPLIN ILMU</h3>
+                    <p className="text-xs font-sans text-slate-600 mt-1">Mengacu Panduan Pembelajaran dan Asesmen (PPA) 2025</p>
+                  </div>
+
+                  {/* BAGIAN 1: RENCANA PEMBELAJARAN */}
+                  <div className="mb-8">
+                    <h3 className="text-base font-bold uppercase bg-slate-100 p-2 border-l-4 border-slate-900 mb-4 font-sans">
+                      BAGIAN 1: RENCANA PEMBELAJARAN
+                    </h3>
+
+                    {/* 1. IDENTITAS */}
+                    <h4 className="font-bold text-slate-800 mb-2 font-sans">1. IDENTITAS MODUL</h4>
+                    <table className="w-full border-collapse border border-slate-400 mb-6 text-xs text-left">
+                      <tbody>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 w-1/3 border-r border-slate-300">Satuan Pendidikan</td>
+                          <td className="p-2">{formData.satuanPendidikan}</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Konsentrasi Keahlian</td>
+                          <td className="p-2">{formData.konsentrasiKeahlian}</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Mata Pelajaran Utama</td>
+                          <td className="p-2">{formData.mapelUtama}</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Tema Proyek Kolaborasi</td>
+                          <td className="p-2 font-bold">{formData.temaProyek}</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Kelas / Fase / Semester</td>
+                          <td className="p-2">{formData.kelasFase} / {formData.semester}</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Alokasi Waktu Total</td>
+                          <td className="p-2">{formData.alokasiWaktu}</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Tim Mata Pelajaran Kolaborasi</td>
+                          <td className="p-2">
+                            <ol className="list-decimal list-inside">
+                              {formData.mapelKolaborasi.map((m, i) => <li key={i}>{m.mapel}</li>)}
+                            </ol>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Tim Penyusun / Guru Pengampu</td>
+                          <td className="p-2">
+                            {formData.timPenyusun.map((g, i) => <div key={i}>{g.nama} (NIP. {g.nip})</div>)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    {/* 2. IDENTIFIKASI PEMBELAJARAN */}
+                    <h4 className="font-bold text-slate-800 mb-2 font-sans">2. IDENTIFIKASI PEMBELAJARAN</h4>
+                    <div className="mb-4 text-justify">
+                      <p className="font-semibold text-xs mb-1">A. Karakteristik Peserta Didik:</p>
+                      <table className="w-full border-collapse border border-slate-400 mb-4 text-xs text-left">
+                        <thead>
+                          <tr className="bg-slate-100 font-semibold border-b border-slate-400">
+                            <th className="p-2 border-r border-slate-400 w-1/3">Profil Peserta Didik</th>
+                            <th className="p-2">Deskripsi Pemetaan Kesiapan & Latar Belakang</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b border-slate-300">
+                            <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Kesiapan Belajar (Readiness)</td>
+                            <td className="p-2">30% memiliki pengetahuan dasar agribisnis baik dari lingkungan keluarga petani, 50% memiliki tingkat pemahaman sedang, dan 20% memerlukan bimbingan intensif pada teknik analisis matematis dan pengoperasian instrumen agribisnis modern.</td>
+                          </tr>
+                          <tr className="border-b border-slate-300">
+                            <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Minat Belajar</td>
+                            <td className="p-2">Dominan berminat pada aplikasi digital, fotografi produk, kewirausahaan muda, dan teknik budidaya tanaman ramah lingkungan.</td>
+                          </tr>
+                          <tr>
+                            <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Gaya Belajar & Latar Belakang</td>
+                            <td className="p-2">60% Kinestetik (praktik lapangan), 25% Visual (grafis/video), 15% Auditori. Lingkungan geografis Amarasi Selatan memiliki potensi lahan hortikultura yang belum terintegrasi sistem pemasaran modern.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <p className="font-semibold text-xs mb-1">B. Matriks Kontribusi Mata Pelajaran Kolaborasi & Output Murid:</p>
+                    <table className="w-full border-collapse border border-slate-400 mb-6 text-xs text-left">
+                      <thead>
+                        <tr className="bg-slate-100 font-semibold border-b border-slate-400">
+                          <th className="p-2 border-r border-slate-400 w-1/4">Mata Pelajaran</th>
+                          <th className="p-2 border-r border-slate-400 w-2/4">Kontribusi dalam Proyek</th>
+                          <th className="p-2 w-1/4">Output / Produk Spesifik Murid</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold border-r border-slate-300">Konsentrasi Keahlian ATPH</td>
+                          <td className="p-2 border-r border-slate-300">Eksekusi teknis budidaya hortikultura organik, pembuatan pupuk cair/pestisida hayati, dan pemeliharaan tanaman.</td>
+                          <td className="p-2 font-medium">Produk Panen Sayuran Organik Higienis & Laporan Teknik Budidaya.</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold border-r border-slate-300">Matematika</td>
+                          <td className="p-2 border-r border-slate-300">Analisis data pertumbuhan, perhitungan BEP, proyeksi keuntungan, dan pemetaan efisiensi pemupukan.</td>
+                          <td className="p-2 font-medium">Tabel Matriks Matematika Bisnis, Kurva Pertumbuhan Tanaman, dan Neraca Proyeksi Keuangan.</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold border-r border-slate-300">Bahasa Indonesia</td>
+                          <td className="p-2 border-r border-slate-300">Penyusunan laporan teknis-ilmiah hasil proyek, penulisan deskripsi naratif produk, dan penyusunan naskah presentasi.</td>
+                          <td className="p-2 font-medium">Laporan Proyek Eksplanatif-Argumenatif dan Naskah Presentasi Pitching Bisnis.</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold border-r border-slate-300">Projek Kreatif & Kewirausahaan</td>
+                          <td className="p-2 border-r border-slate-300">Desain kemasan (packaging), branding produk, penentuan HPP/harga jual, dan strategi saluran pemasaran offline/online.</td>
+                          <td className="p-2 font-medium">Produk Terkemas Siap Jual, Desain Label Branding, dan Feasibility Study Usaha.</td>
+                        </tr>
+                        <tr>
+                          <td className="p-2 font-semibold border-r border-slate-300">Bahasa Inggris</td>
+                          <td className="p-2 border-r border-slate-300">Pembuatan konten promosi digital berbahasa Inggris (Social Media Caption/Catalog) dan penyusunan executive summary.</td>
+                          <td className="p-2 font-medium">Digital Product Catalog (Bilingual) dan Promotional Pitch Video.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <p className="font-semibold text-xs mb-1">C. Dimensi Profil Lulusan:</p>
+                    <table className="w-full border-collapse border border-slate-400 mb-6 text-xs text-left">
+                      <thead>
+                        <tr className="bg-slate-100 font-semibold border-b border-slate-400">
+                          <th className="p-2 border-r border-slate-400 w-1/3">Dimensi Profil Lulusan</th>
+                          <th className="p-2 border-r border-slate-400 w-1/3">Elemen</th>
+                          <th className="p-2 w-1/3">Sub-Elemen & Perilaku Target</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {formData.dimensiProfil.map((dim, idx) => (
+                          <tr key={idx} className="border-b border-slate-300">
+                            <td className="p-2 font-semibold border-r border-slate-300">{dim}</td>
+                            <td className="p-2 border-r border-slate-300">
+                              {dim === "Penalaran Kritis" ? "Memperoleh & memproses informasi" : dim === "Kolaborasi" ? "Kerja Sama & Komunikasi" : "Pengelolaan Diri & Tanggung Jawab"}
+                            </td>
+                            <td className="p-2">
+                              {dim === "Penalaran Kritis" ? "Mengidentifikasi, mengklarifikasi, dan mengolah informasi nutrisi & efisiensi biaya." : dim === "Kolaborasi" ? "Membangun tim kerja efektif dalam pengerjaan lahan proyek." : "Menunjukkan kepedulian terhadap lingkungan dan ketaatan prosedur K3."}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* 3. DESAIN PEMBELAJARAN */}
+                    <h4 className="font-bold text-slate-800 mb-2 font-sans">3. DESAIN PEMBELAJARAN</h4>
+                    <table className="w-full border-collapse border border-slate-400 mb-6 text-xs text-left">
+                      <tbody>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 w-1/3 border-r border-slate-300">Capaian Pembelajaran (CP) Utama</td>
+                          <td className="p-2">{formData.cpUtama}</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Lintas Disiplin Ilmu</td>
+                          <td className="p-2">Agribisnis, Matematika Terapan, Teknologi Informasi, Bahasa Indonesia, & PPKn</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Tujuan Pembelajaran Terintegrasi</td>
+                          <td className="p-2">
+                            <ul className="list-disc list-inside space-y-1">
+                              {formData.mapelKolaborasi.map((m, i) => <li key={i}><b>{m.mapel}:</b> {m.tp}</li>)}
+                            </ul>
+                          </td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Topik Pembelajaran</td>
+                          <td className="p-2">Inovasi Budidaya Hortikultura Ramah Lingkungan & Strategi Pemasaran Digital Vokasi</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Praktik Pedagogis / Model</td>
+                          <td className="p-2">Project-Based Learning (PjBL) Terintegrasi Deep Learning (Mindful, Meaningful, Joyful)</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Kemitraan Pembelajaran</td>
+                          <td className="p-2">Dunia Kerja / IDUKA Hortikultura Lokal & Petani Pengusaha Organik Mitra Sekolah</td>
+                        </tr>
+                        <tr className="border-b border-slate-300">
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Lingkungan Pembelajaran</td>
+                          <td className="p-2">Lahan Praktik Green House SMK, Lab Komputer, dan Platform Pembelajaran Digital</td>
+                        </tr>
+                        <tr>
+                          <td className="p-2 font-semibold bg-slate-50 border-r border-slate-300">Pemanfaatan Digital</td>
+                          <td className="p-2">Aplikasi Spreadsheet Pembiayaan, Canva Design Tool, Social Media Business, & Google Workspace</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    {/* 4. PENGALAMAN BELAJAR PER MATA PELAJARAN */}
+                    <h4 className="font-bold text-slate-800 mb-2 font-sans">4. PENGALAMAN BELAJAR PER MATA PELAJARAN</h4>
+                    <p className="text-xs mb-4 text-justify">
+                      Setiap tahapan dirancang mengacu alur <b>Memahami, Mengaplikasi, dan Merefleksi</b> dengan suasana <b>Berkesadaran (Mindful), Bermakna (Meaningful), dan Menggembirakan (Joyful)</b>.
+                    </p>
+
+                    {/* A. MAPEL UTAMA */}
+                    <div className="border border-slate-400 rounded-lg p-3 mb-4 bg-slate-50 space-y-3">
+                      <h5 className="font-bold text-xs uppercase text-blue-900 border-b pb-1">A. MATA PELAJARAN UTAMA: KONSENTRASI KEAHLIAN ATPH</h5>
+                      
+                      <div className="space-y-2 text-xs">
+                        <p className="font-bold text-slate-800">Minggu 1: Pertanyaan Mendasar & Perencanaan Teknis Budidaya</p>
+                        <p className="font-semibold text-slate-700">• Kegiatan Awal (Mindful, Meaningful, Joyful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li><b>Mindful:</b> Guru mengajak murid melakukan pengamatan hening (mindful observation) pada kondisi tanah lahan sekolah dan mendengarkan suara alam untuk membangun keterikatan dengan bumi.</li>
+                          <li><b>Meaningful:</b> Guru menunjukkan dua sampel produk sayur: sayur konvensional yang terpapar pestisida kimia dan sayur organik segar hasil budidaya ramah lingkungan. Guru memantik ide: &quot;Bagaimana kita bisa memberi makan masyarakat Amarasi Selatan dengan pangan yang sehat tanpa merusak tanah kita?&quot;</li>
+                          <li><b>Joyful:</b> Permainan kuis interaktif &quot;Tebak Hama & Sahabat Petani&quot; untuk menguji pengetahuan awal secara menyenangkan.</li>
+                          <li>Guru menyampaikan tujuan pembelajaran proyek kolaborasi dan alokasi waktu 4 minggu.</li>
+                          <li>Pembentukan kelompok kerja heterogen (masing-masing 4–5 murid).</li>
+                        </ol>
+                        <p className="font-semibold text-slate-700">• Kegiatan Inti:</p>
+                        <ul className="list-disc list-inside pl-3 space-y-1">
+                          <li><b>MEMAHAMI (Mindful & Meaningful):</b> Murid mengeksplorasi literatur mengenai kriteria pupuk cair organik (POC) dan pestisida hayati berbasis bahan lokal (daun mimba, serai, bawang putih). Murid menganalisis kebutuhan nutrisi tanaman hortikultura yang dipilih (misalnya: Caisim/Terung).</li>
+                          <li><b>MENGAPLIKASI (Syntax PjBL 1 & 2 - Meaningful & Joyful):</b> Sintaks 1 (Pertanyaan Mendasar): Murid merumuskan pertanyaan kunci: &quot;Berapa dosis bio-pestisida paling efektif untuk menekan hama tanpa menurunkan produktivitas?&quot;. Sintaks 2 (Mendesain Perencanaan Proyek): Murid merancang jadwal olah tanah, pembuatan media tanam, persemaian benih, dan jadwal aplikasi bio-pestisida.</li>
+                        </ul>
+                        <p className="font-semibold text-slate-700">• Kegiatan Penutupan (Mindful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li>Murid melakukan refleksi singkat: &quot;Satu hal baru yang saya rasakan saat menyentuh tanah hari ini.&quot;</li>
+                          <li>Guru memberikan koreksi konstruktif atas desain proyek yang dibuat.</li>
+                          <li>Apresiasi atas kerja tim murid.</li>
+                          <li>Doa penutup bersama.</li>
+                        </ol>
+
+                        <p className="font-bold text-slate-800 pt-2">Minggu 2: Eksekusi Lahan & Pemeliharaan Tanaman</p>
+                        <p className="font-semibold text-slate-700">• Kegiatan Awal (Mindful, Meaningful, Joyful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li><b>Mindful:</b> Melakukan pemanasan fisik ringan dan breathing exercise di lahan praktikum.</li>
+                          <li><b>Meaningful:</b> Guru mengaitkan kebersihan lahan dengan kesehatan produk yang dihasilkan.</li>
+                          <li><b>Joyful:</b> Yel-yel motivasi kelompok tani muda.</li>
+                          <li>Mereviu catatan logbook minggu ke-1.</li>
+                          <li>Penyampaian target pekerjaan hari ini: aplikasi nutrisi dan penyiapan sistem proteksi tanaman.</li>
+                        </ol>
+                        <p className="font-semibold text-slate-700">• Kegiatan Inti:</p>
+                        <ul className="list-disc list-inside pl-3 space-y-1">
+                          <li><b>MENGAPLIKASI (Syntax PjBL 3 & 4 - Meaningful & Joyful):</b> Sintaks 3 (Menyusun Jadwal Pemeliharaan): Murid menyusun papan kontrol perawatan harian (watering & weeding schedule). Sintaks 4 (Memonitor Kemajuan Proyek): Murid menyemprotkan bio-pestisida, mengukur tinggi tanaman, mencatat jumlah daun, dan mengamati serangan hama secara rutin.</li>
+                        </ul>
+                        <p className="font-semibold text-slate-700">• Kegiatan Penutupan (Mindful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li>Merapikan dan membersihkan kembali seluruh alat praktikum ke gudang (budaya 5R).</li>
+                          <li>Pengisian logbook individu harian.</li>
+                          <li>Refleksi perasaan murid setelah bekerja keras di lapangan.</li>
+                          <li>Doa penutup.</li>
+                        </ol>
+
+                        <p className="font-bold text-slate-800 pt-2">Minggu 3: Panen, Penanganan Pascapanen & Pengujian Hasil</p>
+                        <p className="font-semibold text-slate-700">• Kegiatan Awal (Mindful, Meaningful, Joyful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li><b>Mindful:</b> Mengekspresikan rasa syukur atas hasil panen yang berkembang baik.</li>
+                          <li><b>Meaningful:</b> Mengaitkan pentingnya penanganan panen yang higienis agar nilai jual tidak jatuh.</li>
+                          <li><b>Joyful:</b> Kompetisi memanen dengan teknik terbersih dan tercepat.</li>
+                          <li>Penataan ruang laboratorium pascapanen.</li>
+                          <li>Pembagian tugas pemilahan (sorting & grading).</li>
+                        </ol>
+                        <p className="font-semibold text-slate-700">• Kegiatan Inti:</p>
+                        <ul className="list-disc list-inside pl-3 space-y-1">
+                          <li><b>MENGAPLIKASI (Syntax PjBL 5 - Meaningful & Joyful):</b> Sintaks 5 (Menguji Hasil): Murid melakukan pemanenan, menimbang total bobot panen, serta menyortir kualitas daun dan ukuran sesuai grade standar komersial.</li>
+                        </ul>
+                        <p className="font-semibold text-slate-700">• Kegiatan Penutupan (Mindful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li>Penyimpanan hasil panen di ruang pendingin/tempat teduh.</li>
+                          <li>Evaluasi tingkat kerugian (loss rate) panen.</li>
+                          <li>Apresiasi kinerja fisik murid.</li>
+                          <li>Doa penutup.</li>
+                        </ol>
+
+                        <p className="font-bold text-slate-800 pt-2">Minggu 4: Gelar Karya, Refleksi, dan Evaluasi Proyek</p>
+                        <p className="font-semibold text-slate-700">• Kegiatan Awal (Mindful, Meaningful, Joyful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li><b>Mindful:</b> Memvisualisasikan keberhasilan presentasi pameran di hadapan pengunjung dan asesor.</li>
+                          <li><b>Meaningful:</b> Memahami bahwa pameran karya adalah pembuktian kompetensi vokasi.</li>
+                          <li><b>Joyful:</b> Persiapan dekorasi booth pameran dengan musik energik.</li>
+                          <li>Pengkondisian stan pameran (booth) kelompok.</li>
+                          <li>Simulasi pembukaan presentasi.</li>
+                        </ol>
+                        <p className="font-semibold text-slate-700">• Kegiatan Inti:</p>
+                        <ul className="list-disc list-inside pl-3 space-y-1">
+                          <li><b>MENGAPLIKASI & MEREFLEKSI (Syntax PjBL 6, 7, 8 - Meaningful & Mindful):</b> Sintaks 6 (Komunikasi & Gelar Karya): Murid memamerkan produk sayur organik segar lengkap dengan brosur dan bukti analisis keuangan di hadapan Kepala Sekolah, Guru, dan Asesor. Sintaks 7 (Refleksi Proyek): Murid mengevaluasi seluruh proses dari hulu ke hilir. Sintaks 8 (Tindak Lanjut): Menyusun rencana perbaikan budidaya untuk siklus tanam berikutnya.</li>
+                        </ul>
+                        <p className="font-semibold text-slate-700">• Kegiatan Penutupan (Mindful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li>Pengumuman kelompok terbaik berdasarkan aspek teknis dan estetika.</li>
+                          <li>Penyerahan sertifikat apresiasi internal.</li>
+                          <li>Refleksi penutup: &quot;Apa artinya menjadi wirausahawan muda bagi saya?&quot;</li>
+                          <li>Doa penutup seluruh rangkaian proyek.</li>
+                        </ol>
+                      </div>
+                    </div>
+
+                    {/* B. MATEMATIKA */}
+                    <div className="border border-slate-400 rounded-lg p-3 mb-4 bg-slate-50 space-y-3">
+                      <h5 className="font-bold text-xs uppercase text-blue-900 border-b pb-1">B. MATA PELAJARAN KOLABORASI 1: MATEMATIKA</h5>
+                      <div className="space-y-2 text-xs">
+                        <p className="font-bold text-slate-800">Pertemuan Intervensi (Minggu 2 & 3)</p>
+                        <p className="font-semibold text-slate-700">• Kegiatan Awal (Mindful, Meaningful, Joyful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li><b>Mindful:</b> Mengingat kembali pentingnya ketelitian angka dalam dunia bisnis.</li>
+                          <li><b>Meaningful:</b> Menghubungkan perhitungan data tanaman dengan keberhasilan atau kegagalan bisnis pertanian.</li>
+                          <li><b>Joyful:</b> &quot;Game Kuis Cepat Hitung Keuntungan&quot; secara interaktif.</li>
+                          <li>Pengondisian data lapangan hasil ukuran pertumbuhan murid dari Mapel ATPH.</li>
+                          <li>Penyampaian sasaran: Menghasilkan tabel matriks kuantitatif dan kurva grafik.</li>
+                        </ol>
+                        <p className="font-semibold text-slate-700">• Kegiatan Inti:</p>
+                        <ul className="list-disc list-inside pl-3 space-y-1">
+                          <li><b>MEMAHAMI:</b> Murid mengkaji rumus Break Even Point (BEP Unit & BEP Rupiah) serta rumus rata-rata pertumbuhan laju tanaman.</li>
+                          <li><b>MENGAPLIKASI:</b> Murid mengolah data tinggi tanaman dan jumlah daun dari mapel ATPH ke dalam Google Sheets untuk membuat grafik pertumbuhan linier. Murid mengkalkulasi Biaya Tetap (Sewa lahan, depresiasi alat) dan Biaya Variabel (Benih, POC, plastik kemasan) untuk menemukan harga pokok produksi (HPP).</li>
+                          <li><b>MEREFLEKSI:</b> Murid mendiskusikan: &quot;Apakah jumlah biaya yang dikeluarkan sebanding dengan perkiraan bobot panen?&quot;</li>
+                        </ul>
+                        <p className="font-semibold text-slate-700">• Kegiatan Penutupan:</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li>Verifikasi ketepatan rumus hitung oleh guru Matematika.</li>
+                          <li>Pemberian umpan balik terhadap hasil pembuatan kurva.</li>
+                          <li>Refleksi pentingnya akurasi data statistik.</li>
+                          <li>Doa penutup.</li>
+                        </ol>
+                      </div>
+                    </div>
+
+                    {/* C. BAHASA INDONESIA */}
+                    <div className="border border-slate-400 rounded-lg p-3 mb-4 bg-slate-50 space-y-3">
+                      <h5 className="font-bold text-xs uppercase text-blue-900 border-b pb-1">C. MATA PELAJARAN KOLABORASI 2: BAHASA INDONESIA</h5>
+                      <div className="space-y-2 text-xs">
+                        <p className="font-bold text-slate-800">Pertemuan Intervensi (Minggu 3 & 4)</p>
+                        <p className="font-semibold text-slate-700">• Kegiatan Awal (Mindful, Meaningful, Joyful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li><b>Mindful:</b> Menyadari kekuatan kata-kata dalam menyampaikan kebenaran ilmiah dan menarik pembaca.</li>
+                          <li><b>Meaningful:</b> Memahami bahwa laporan teknis yang baik adalah syarat utama profesionalisme kerja.</li>
+                          <li><b>Joyful:</b> Analisis kesalahan berbahasa yang lucu pada brosur-brosur iklan populer.</li>
+                          <li>Pembagian outline penulisan Laporan Hasil Observasi Proyek.</li>
+                          <li>Pengondisian draf tulisan kelompok.</li>
+                        </ol>
+                        <p className="font-semibold text-slate-700">• Kegiatan Inti:</p>
+                        <ul className="list-disc list-inside pl-3 space-y-1">
+                          <li><b>MEMAHAMI:</b> Murid mempelajari struktur teks laporan (Definisi Umum, Deskripsi Bagian, Deskripsi Manfaat) serta kaidah Ejaan Bahasa Indonesia (EYD Edisi V).</li>
+                          <li><b>MENGAPLIKASI:</b> Murid merangkai seluruh catatan harian logbook ATPH dan kalkulasi Matematika menjadi sebuah bab Laporan Ilmiah yang utuh. Murid menyusun teks naskah pitching presentasi yang komunikatif dan persuasif untuk gelar karya.</li>
+                          <li><b>MEREFLEKSI:</b> Peer-editing (saling mengoreksi) antarkelompok terhadap draf laporan ilmiah yang telah dibuat.</li>
+                        </ul>
+                        <p className="font-semibold text-slate-700">• Kegiatan Penutupan:</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li>Finalisasi dokumen laporan kelompok.</li>
+                          <li>Pemberian apresiasi atas kedisiplinan berbahasa.</li>
+                          <li>Refleksi diri atas peningkatan keterampilan menulis ilmiah.</li>
+                          <li>Doa penutup.</li>
+                        </ol>
+                      </div>
+                    </div>
+
+                    {/* D. PKK */}
+                    <div className="border border-slate-400 rounded-lg p-3 mb-4 bg-slate-50 space-y-3">
+                      <h5 className="font-bold text-xs uppercase text-blue-900 border-b pb-1">D. MATA PELAJARAN KOLABORASI 3: PROJEK KREATIF DAN KEWIRAUSAHAAN (PKK)</h5>
+                      <div className="space-y-2 text-xs">
+                        <p className="font-bold text-slate-800">Pertemuan Intervensi (Minggu 2 & 3)</p>
+                        <p className="font-semibold text-slate-700">• Kegiatan Awal (Mindful, Meaningful, Joyful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li><b>Mindful:</b> Mengamati berbagai desain produk di supermarket untuk merasakan impresi visual.</li>
+                          <li><b>Meaningful:</b> Menyederhanakan pemahaman bahwa &quot;Kemasan adalah penjual pertama produk Anda.&quot;</li>
+                          <li><b>Joyful:</b> Sesi brainstorming ide kemasan unik dengan bahan ramah lingkungan.</li>
+                          <li>Pengenalan alat hand sealer dan jenis-jenis plastik kemasan (Standing Pouch/Plastik Biodegradable).</li>
+                          <li>Penyampaian target: Terciptanya kemasan siap jual yang beretika bisnis.</li>
+                        </ol>
+                        <p className="font-semibold text-slate-700">• Kegiatan Inti:</p>
+                        <ul className="list-disc list-inside pl-3 space-y-1">
+                          <li><b>MEMAHAMI:</b> Murid menganalisis fungsi kemasan (Protektif, Promotif, Informatif) dan regulasi label pangan (Komposisi, Netto, Tanggal Kedaluwarsa).</li>
+                          <li><b>MENGAPLIKASI:</b> Murid merancang stiker label menggunakan aplikasi Canva dengan memuat logo, nama merek (brand), dan keunggulan &quot;100% Organik&quot;. Murid mengemas hasil panen sayur yang telah disortir menggunakan standing pouch/wrap packaging dan melakukan pencetakan label.</li>
+                          <li><b>MEREFLEKSI:</b> Murid melakukan pengujian kelayakan kemasan (uji kebocoran dan daya tarik estetika).</li>
+                        </ul>
+                        <p className="font-semibold text-slate-700">• Kegiatan Penutupan:</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li>Pameran internal ringkas kemasan produk antar-kelompok.</li>
+                          <li>Umpan balik dari guru PKK terkait branding.</li>
+                          <li>Refleksi kreativitas kelompok.</li>
+                          <li>Doa penutup.</li>
+                        </ol>
+                      </div>
+                    </div>
+
+                    {/* E. BAHASA INGGRIS */}
+                    <div className="border border-slate-400 rounded-lg p-3 mb-4 bg-slate-50 space-y-3">
+                      <h5 className="font-bold text-xs uppercase text-blue-900 border-b pb-1">E. MATA PELAJARAN KOLABORASI 4: BAHASA INGGRIS</h5>
+                      <div className="space-y-2 text-xs">
+                        <p className="font-bold text-slate-800">Pertemuan Intervensi (Minggu 3 & 4)</p>
+                        <p className="font-semibold text-slate-700">• Kegiatan Awal (Mindful, Meaningful, Joyful):</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li><b>Mindful:</b> Mengondisikan pikiran agar berani berbicara Bahasa Inggris tanpa takut salah gramatikal.</li>
+                          <li><b>Meaningful:</b> Menyutradarai pemikiran bahwa pertanian lokal bisa menembus pasar internasional melalui media digital.</li>
+                          <li><b>Joyful:</b> Vocabulary Challenge: Mengucapkan istilah-istilah agribisnis Bahasa Inggris secara cepat dan tepat.</li>
+                          <li>Penayangan contoh video promosi produk organik dunia.</li>
+                          <li>Pembagian tugas peran dalam pembuatan konten bilingual.</li>
+                        </ol>
+                        <p className="font-semibold text-slate-700">• Kegiatan Inti:</p>
+                        <ul className="list-disc list-inside pl-3 space-y-1">
+                          <li><b>MEMAHAMI:</b> Murid mempelajari struktur Descriptive Text dan Persuasive Language dalam pembuatan caption media sosial serta katalog produk.</li>
+                          <li><b>MENGAPLIKASI:</b> Murid menerjemahkan poin-poin keunggulan produk dari Mapel Bahasa Indonesia ke dalam Bahasa Inggris yang menarik (&quot;Fresh, Organic, and Locally Grown!&quot;). Murid merancang katalog produk digital bilingual dan merekam video ulasan pendek (Reels/TikTok) berdurasi 60 detik.</li>
+                          <li><b>MEREFLEKSI:</b> Murid saling menonton video promosi buatan kelompok lain dan memberikan saran perbaikan aksen maupun kejelasan pesan.</li>
+                        </ul>
+                        <p className="font-semibold text-slate-700">• Kegiatan Penutupan:</p>
+                        <ol className="list-decimal list-inside pl-3 space-y-1">
+                          <li>Unggah (upload) karya digital terbaik ke media sosial sekolah.</li>
+                          <li>Apresiasi atas keberanian berkomunikasi bahasa asing.</li>
+                          <li>Refleksi tingkat kepercayaan diri murid.</li>
+                          <li>Doa penutup.</li>
+                        </ol>
+                      </div>
+                    </div>
+
+                    {/* 5. ASESMEN PEMBELAJARAN */}
+                    <h4 className="font-bold text-slate-800 mb-2 font-sans pt-2">5. ASESMEN PEMBELAJARAN INTEGRATIF</h4>
+                    <div className="space-y-3 text-xs mb-6">
+                      <div className="p-3 border border-slate-300 rounded bg-slate-50">
+                        <p className="font-bold text-blue-900 mb-1">A. Asesmen Awal (Diagnostik)</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li><b>Kognitif:</b> Kuis singkat 5 soal pilihan ganda via Google Form mengenai konsep dasar pupuk organik dan perhitungan aritmetika dasar.</li>
+                          <li><b>Non-Kognitif:</b> Angket diagnostik minat bakat dan kenyamanan bekerja dalam tim.</li>
+                          <li><b>Tindak Lanjut:</b> Murid yang belum menguasai konsep dasar diberikan tutor sebaya oleh murid yang memiliki kesiapan lebih tinggi.</li>
+                        </ul>
+                      </div>
+
+                      <div className="p-3 border border-slate-300 rounded bg-slate-50">
+                        <p className="font-bold text-blue-900 mb-1">B. Asesmen Proses (Formatif)</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li><b>Observasi Kinerja:</b> Penilaian keaktifan murid di lahan, kedisiplinan K3LH, dan keterampilan mengoperasikan alat.</li>
+                          <li><b>Logbook Proyek:</b> Pemeriksaan mingguan terhadap kelengkapan catatan data pertumbuhan tanaman dan kendala di lapangan.</li>
+                          <li><b>Peer Assessment:</b> Penilaian antarteman dalam satu kelompok untuk mengukur kontribusi individu dalam dimensi Gotong Royong dan Kemandirian.</li>
+                        </ul>
+                      </div>
+
+                      <div className="p-3 border border-slate-300 rounded bg-slate-50">
+                        <p className="font-bold text-blue-900 mb-1">C. Asesmen Akhir (Sumatif Proyek)</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li><b>Penilaian Produk Artefak (Bobot 30%):</b> Kualitas kesegaran sayur organik, kebersihan, dan ketahanan kemasan.</li>
+                          <li><b>Penilaian Laporan Integratif (Bobot 30%):</b> Ketepatan hitungan BEP/HPP Matematika dan keruntutan bahasa Indonesia.</li>
+                          <li><b>Penilaian Presentasi & Pitching (Bobot 40%):</b> Kelancaran menyampaikan argumentasi di depan asesor, penguasaan materi, serta kualitas katalog bilingual Bahasa Inggris.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* BAGIAN 2: LAMPIRAN PENDUKUNG (OPERASIONAL & LENGKAP) */}
+                  <div className="mb-8 border-t-2 border-slate-900 pt-6">
+                    <h3 className="text-base font-bold uppercase bg-slate-100 p-2 border-l-4 border-slate-900 mb-4 font-sans">
+                      BAGIAN 2: LAMPIRAN PENDUKUNG OPERASIONAL
+                    </h3>
+
+                    {/* LAMPIRAN 1 */}
+                    <div className="mb-6">
+                      <h4 className="font-bold text-slate-800 mb-2 font-sans border-b pb-1">LAMPIRAN 1: BAHAN AJAR INTEGRATIF</h4>
+                      <div className="p-3 bg-slate-50 border border-slate-300 rounded text-xs space-y-2 text-justify">
+                        <p><b>1. Konsep Agribisnis Hortikultura Organik:</b> Hortikultura berkelanjutan menekankan pada prinsip keseimbangan ekosistem, penggunaan pupuk organik berimbang, dan pengendalian Hama Terpadu (PHT) tanpa bahan kimia sintetik berbahaya.</p>
+                        <p><b>2. Matematika Terapan (Formulasi Nutrisi & Finansial):</b> Perhitungan dosis pupuk organik serta perhitungan R/C Ratio = Total Penerimaan / Total Biaya Operasional. Nilai R/C &gt; 1 menandakan usaha layak dijalankan.</p>
+                        <p><b>3. Pemasaran Digital & Komunikasi Vokasi:</b> Visual branding produk pertanian memerlukan elemen kepastian mutu (freshness), kemasan ramah lingkungan, dan copywriting persuasif dengan kaidah bahasa baku yang menarik pembeli.</p>
+                      </div>
+                    </div>
+
+                    {/* LAMPIRAN 2 */}
+                    <div className="mb-6">
+                      <h4 className="font-bold text-slate-800 mb-2 font-sans border-b pb-1">LAMPIRAN 2: LEMBAR KERJA PESERTA DIDIK (LKPD) INTEGRATIF</h4>
+                      <div className="p-3 border border-slate-400 rounded text-xs space-y-3">
+                        <div className="text-center font-bold uppercase border-b pb-1">
+                          LKPD PROYEK KOLABORASI: HORTIKULTURA ORGANIK MODERN
+                        </div>
+                        <p><b>Nama Kelompok:</b> ____________________ | <b>Kelas:</b> XI ATPH</p>
+                        
+                        <div>
+                          <p className="font-semibold text-blue-900">BAGIAN A: PERENCANAAN TEKNIS (Mapel Utama & Hortikultura)</p>
+                          <p>1. Tuliskan jenis tanaman hortikultura yang dipilih dan alasannya!</p>
+                          <p className="h-10 border border-slate-300 rounded p-1 text-slate-400">Jawaban murid...</p>
+                        </div>
+
+                        <div>
+                          <p className="font-semibold text-blue-900">BAGIAN B: ANALISIS PEMBIAYAAN (Mapel Matematika)</p>
+                          <p>2. Hitung Rincian Modal Usaha dan Proyeksi Pendapatan (Tabel terlampir dalam LKPD)!</p>
+                          <table className="w-full border-collapse border border-slate-300 mt-1">
+                            <thead>
+                              <tr className="bg-slate-200">
+                                <th className="border border-slate-300 p-1">Item Biaya</th>
+                                <th className="border border-slate-300 p-1">Volume</th>
+                                <th className="border border-slate-300 p-1">Harga Satuan (Rp)</th>
+                                <th className="border border-slate-300 p-1">Total (Rp)</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr><td className="border border-slate-300 p-1">&nbsp;</td><td className="border border-slate-300 p-1"></td><td className="border border-slate-300 p-1"></td><td className="border border-slate-300 p-1"></td></tr>
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div>
+                          <p className="font-semibold text-blue-900">BAGIAN C: STRATEGI PEMASARAN DIGITAL (Mapel Informatika & B. Indo)</p>
+                          <p>3. Buatlah draft teks promosi produk 100 kata dengan menyertakan keunggulan organik produk Anda!</p>
+                          <p className="h-12 border border-slate-300 rounded p-1 text-slate-400">Jawaban murid...</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* LAMPIRAN 3 */}
+                    <div className="mb-6">
+                      <h4 className="font-bold text-slate-800 mb-2 font-sans border-b pb-1">LAMPIRAN 3: RUBRIK PENILAIAN UNJUK KERJA / PRODUK</h4>
+                      <table className="w-full border-collapse border border-slate-400 text-xs text-left">
+                        <thead>
+                          <tr className="bg-slate-100 font-semibold border-b border-slate-400">
+                            <th className="p-2 border-r border-slate-400 w-1/5">Aspek Penilaian</th>
+                            <th className="p-2 border-r border-slate-400">Perlu Bimbingan (1)</th>
+                            <th className="p-2 border-r border-slate-400">Cukup (2)</th>
+                            <th className="p-2 border-r border-slate-400">Baik (3)</th>
+                            <th className="p-2">Sangat Baik (4)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b border-slate-300">
+                            <td className="p-2 font-semibold border-r border-slate-300">Kualitas Produk Hasil Panen (ATPH)</td>
+                            <td className="p-2 border-r border-slate-300">Sayuran layu, banyak cacat fisik akibat hama (&gt;30%), ukuran tidak seragam.</td>
+                            <td className="p-2 border-r border-slate-300">Sayuran cukup segar, cacat hama sedang (15-30%), ukuran kurang seragam.</td>
+                            <td className="p-2 border-r border-slate-300">Sayuran segar, cacat hama minim (&lt;15%), ukuran seragam sesuai standar.</td>
+                            <td className="p-2">Sayuran sangat segar, bebas cacat hama, daun bersih, mutu super/organik prima.</td>
+                          </tr>
+                          <tr className="border-b border-slate-300">
+                            <td className="p-2 font-semibold border-r border-slate-300">Akurasi Data & Analisis Keuangan (Matematika)</td>
+                            <td className="p-2 border-r border-slate-300">Perhitungan HPP dan BEP salah total, grafik pertumbuhan tidak disajikan.</td>
+                            <td className="p-2 border-r border-slate-300">Perhitungan HPP benar tetapi BEP keliru, grafik disajikan manual tanpa skala tepat.</td>
+                            <td className="p-2 border-r border-slate-300">Perhitungan HPP dan BEP benar, grafik pertumbuhan disajikan rapi.</td>
+                            <td className="p-2">Perhitungan HPP dan BEP sangat presisi, grafik dibuat digital komprehensif.</td>
+                          </tr>
+                          <tr className="border-b border-slate-300">
+                            <td className="p-2 font-semibold border-r border-slate-300">Keruntutan & Bahasa Laporan (B. Indonesia)</td>
+                            <td className="p-2 border-r border-slate-300">Laporan tidak sesuai struktur LHO, banyak kesalahan ejaan dan tanda baca.</td>
+                            <td className="p-2 border-r border-slate-300">Struktur LHO kurang lengkap, masih terdapat beberapa kesalahan EYD.</td>
+                            <td className="p-2 border-r border-slate-300">Struktur LHO lengkap, bahasa komunikatif, ejaan sesuai standar EYD.</td>
+                            <td className="p-2">Struktur LHO sangat sistematis, tata bahasa profesional, analisis mendalam.</td>
+                          </tr>
+                          <tr className="border-b border-slate-300">
+                            <td className="p-2 font-semibold border-r border-slate-300">Kreativitas & Daya Tarik Kemasan (PKK)</td>
+                            <td className="p-2 border-r border-slate-300">Kemasan plastik polos tanpa label, tidak rapi, dan mudah bocor/rusak.</td>
+                            <td className="p-2 border-r border-slate-300">Kemasan menggunakan label sederhana, estetika kurang, penutupan rapi.</td>
+                            <td className="p-2 border-r border-slate-300">Kemasan rapi, label memuat informasi penting, desain visual menarik.</td>
+                            <td className="p-2">Kemasan sangat profesional, label estetik & informatif, bahan eco-friendly.</td>
+                          </tr>
+                          <tr>
+                            <td className="p-2 font-semibold border-r border-slate-300">Promosi Digital Bilingual (B. Inggris)</td>
+                            <td className="p-2 border-r border-slate-300">Teks promosi penuh kesalahan tata bahasa Inggris, pesan tidak tersampaikan.</td>
+                            <td className="p-2 border-r border-slate-300">Teks promosi dapat dipahami meski tata bahasa kurang tepat, visual kurang.</td>
+                            <td className="p-2 border-r border-slate-300">Teks promosi Bahasa Inggris komunikatif, tata bahasa baik, visual estetik.</td>
+                            <td className="p-2">Teks promosi Bahasa Inggris sangat persuasif, aksen/penulisan natural dan profesional.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* LAMPIRAN 4 */}
+                    <div className="mb-6">
+                      <h4 className="font-bold text-slate-800 mb-2 font-sans border-b pb-1">LAMPIRAN 4: RUBRIK PENILAIAN SIKAP (PROFIL LULUSAN)</h4>
+                      <table className="w-full border-collapse border border-slate-400 text-xs text-left">
+                        <thead>
+                          <tr className="bg-slate-100 font-semibold border-b border-slate-400">
+                            <th className="p-2 border-r border-slate-400 w-1/5">Dimensi</th>
+                            <th className="p-2 border-r border-slate-400 w-1/5">Indikator</th>
+                            <th className="p-2 border-r border-slate-400">Perlu Bimbingan (1)</th>
+                            <th className="p-2 border-r border-slate-400">Cukup (2)</th>
+                            <th className="p-2 border-r border-slate-400">Baik (3)</th>
+                            <th className="p-2">Sangat Baik (4)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b border-slate-300">
+                            <td className="p-2 font-semibold border-r border-slate-300">Penalaran Kritis</td>
+                            <td className="p-2 border-r border-slate-300">Kemampuan menganalisis masalah dan data</td>
+                            <td className="p-2 border-r border-slate-300">Pasif dalam diskusi, menerima data tanpa klarifikasi.</td>
+                            <td className="p-2 border-r border-slate-300">Menguji data jika diminta oleh guru.</td>
+                            <td className="p-2 border-r border-slate-300">Aktif menganalisis data dan mencari solusi masalah lahan.</td>
+                            <td className="p-2">Mampu berpikir kritis komprehensif dan memberikan solusi inovatif.</td>
+                          </tr>
+                          <tr className="border-b border-slate-300">
+                            <td className="p-2 font-semibold border-r border-slate-300">Kreativitas</td>
+                            <td className="p-2 border-r border-slate-300">Menghasilkan gagasan dan karya orisinal</td>
+                            <td className="p-2 border-r border-slate-300">Mengutip total karya orang lain tanpa modifikasi.</td>
+                            <td className="p-2 border-r border-slate-300">Menghasilkan ide dengan sedikit modifikasi dari contoh.</td>
+                            <td className="p-2 border-r border-slate-300">Merancang ide orisinal yang menarik dalam kemasan/promosi.</td>
+                            <td className="p-2">Merancang ide out-of-the-box, orisinal, dan berdampak tinggi.</td>
+                          </tr>
+                          <tr className="border-b border-slate-300">
+                            <td className="p-2 font-semibold border-r border-slate-300">Kolaborasi</td>
+                            <td className="p-2 border-r border-slate-300">Bekerja sama dalam tim proyek</td>
+                            <td className="p-2 border-r border-slate-300">Enggan berbagi tugas, sering pasif dalam kelompok.</td>
+                            <td className="p-2 border-r border-slate-300">Menjalankan tugas kelompok jika ditegur teman.</td>
+                            <td className="p-2 border-r border-slate-300">Berkelompok aktif dan membantu anggota tim lain.</td>
+                            <td className="p-2">Memimpin pergerakan tim, empati tinggi, memfasilitasi kerja sama.</td>
+                          </tr>
+                          <tr>
+                            <td className="p-2 font-semibold border-r border-slate-300">Kemandirian</td>
+                            <td className="p-2 border-r border-slate-300">Manajemen waktu dan tanggung jawab</td>
+                            <td className="p-2 border-r border-slate-300">Proyek terlambat diselesaikan, logbook jarang diisi.</td>
+                            <td className="p-2 border-r border-slate-300">Menyelesaikan tugas dengan dorongan dari guru secara rutin.</td>
+                            <td className="p-2 border-r border-slate-300">Menyelesaikan tugas tepat waktu sesuai logbook mandiri.</td>
+                            <td className="p-2">Sangat disiplin, proaktif, dan mampu mengelola kendala secara mandiri.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* LAMPIRAN 5 */}
+                    <div className="mb-6">
+                      <h4 className="font-bold text-slate-800 mb-2 font-sans border-b pb-1">LAMPIRAN 5: INSTRUMEN PENILAIAN LENGKAP</h4>
+                      <div className="p-3 bg-slate-50 border border-slate-300 rounded text-xs space-y-3">
+                        <p className="font-bold text-blue-900">1. Kuis Diagnostik Kognitif Awal (Pilihan Ganda)</p>
+                        <ol className="list-decimal list-inside space-y-1">
+                          <li>Bahan alami berikut yang berfungsi sebagai bahan aktif pembuatan pestisida nabati pembasmi ulat adalah...<br/>
+                              A. Garam dapur<br/>B. Daun Mimba<br/>C. Cuka kayu<br/>D. Minyak tanah<br/>
+                              <span className="italic font-semibold text-slate-700">(Kunci Jawaban: B)</span>
+                          </li>
+                          <li className="mt-2">Jika Biaya Tetap Proyek Rp 100.000, Biaya Variabel per Kg Rp 5.000, dan harga jual per Kg Rp 15.000, maka BEP Unit proyek tersebut adalah...<br/>
+                              A. 5 Kg<br/>B. 8 Kg<br/>C. 10 Kg<br/>D. 15 Kg<br/>
+                              <span className="italic font-semibold text-slate-700">(Kunci Jawaban: C)</span>
+                          </li>
+                        </ol>
+
+                        <p className="font-bold text-blue-900 pt-2">2. Lembar Ceklis Observasi Kinerja Kelompok di Lahan</p>
+                        <table className="w-full border-collapse border border-slate-300 text-xs text-center bg-white">
+                          <thead>
+                            <tr className="bg-slate-200">
+                              <th className="border border-slate-300 p-1 w-8">No</th>
+                              <th className="border border-slate-300 p-1">Nama Murid</th>
+                              <th className="border border-slate-300 p-1">Kehadiran Tepat Waktu</th>
+                              <th className="border border-slate-300 p-1">Penggunaan Alat K3LH</th>
+                              <th className="border border-slate-300 p-1">Kerjasama Tim</th>
+                              <th className="border border-slate-300 p-1">Kedisiplinan Catatan Logbook</th>
+                              <th className="border border-slate-300 p-1 w-16">Skor Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[1, 2, 3].map((n) => (
+                              <tr key={n}>
+                                <td className="border border-slate-300 p-1">{n}</td>
+                                <td className="border border-slate-300 p-1 text-left">&nbsp;</td>
+                                <td className="border border-slate-300 p-1"></td>
+                                <td className="border border-slate-300 p-1"></td>
+                                <td className="border border-slate-300 p-1"></td>
+                                <td className="border border-slate-300 p-1"></td>
+                                <td className="border border-slate-300 p-1"></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        <p className="text-[11px] text-slate-600 italic">Petunjuk Penskoran: Berikan centang (✓) pada kolom skor (1-4). Total Skor maksimal = 16.</p>
+
+                        <p className="font-bold text-blue-900 pt-2">3. Lembar Skoring Kuantitatif Produk & Observasi Pitching/Gelar Karya</p>
+                        <table className="w-full border-collapse border border-slate-300 text-xs text-center bg-white">
+                          <thead>
+                            <tr className="bg-slate-200">
+                              <th className="border border-slate-300 p-1 w-8">No</th>
+                              <th className="border border-slate-300 p-1">Nama Kelompok</th>
+                              <th className="border border-slate-300 p-1">Skor Produk Sayur (Max 20)</th>
+                              <th className="border border-slate-300 p-1">Skor Analisis Keuangan (Max 20)</th>
+                              <th className="border border-slate-300 p-1">Skor Laporan LHO (Max 20)</th>
+                              <th className="border border-slate-300 p-1">Skor Kemasan & Brand (Max 20)</th>
+                              <th className="border border-slate-300 p-1">Skor Pitching B. Inggris (Max 20)</th>
+                              <th className="border border-slate-300 p-1">Total Nilai Akhir (0-100)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[1, 2].map((n) => (
+                              <tr key={n}>
+                                <td className="border border-slate-300 p-1">{n}</td>
+                                <td className="border border-slate-300 p-1 text-left">&nbsp;</td>
+                                <td className="border border-slate-300 p-1"></td>
+                                <td className="border border-slate-300 p-1"></td>
+                                <td className="border border-slate-300 p-1"></td>
+                                <td className="border border-slate-300 p-1"></td>
+                                <td className="border border-slate-300 p-1"></td>
+                                <td className="border border-slate-300 p-1"></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        <div className="p-2 bg-white border border-slate-300 rounded font-mono text-center mt-2">
+                          Nilai Akhir (NA) = Total Skor Komponen Produk + Analisis Keuangan + Laporan + Kemasan + Pitching (Rentang Skala Nilai: 0 – 100)
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* LAMPIRAN 6 */}
+                    <div className="mb-6">
+                      <h4 className="font-bold text-slate-800 mb-2 font-sans border-b pb-1">LAMPIRAN 6: LEMBAR REFLEKSI (SISWA & GURU)</h4>
+                      <div className="space-y-4 text-xs">
+                        <div className="p-3 border border-slate-300 rounded bg-slate-50">
+                          <p className="font-bold mb-2 text-blue-900">A. Lembar Refleksi Peserta Didik (Student Self-Reflection)</p>
+                          <table className="w-full border-collapse border border-slate-300 bg-white">
+                            <tbody>
+                              <tr className="border-b border-slate-300">
+                                <td className="p-2 font-semibold bg-slate-100 w-1/3 border-r border-slate-300">Mindful (Kesadaran Diri):<br/><span className="text-[11px] font-normal">Pengalaman paling berharga apa yang saya rasakan selama mengolah lahan hingga menghasilkan produk?</span></td>
+                                <td className="p-2 h-16 text-slate-400 italic">Tanggapan peserta didik...</td>
+                              </tr>
+                              <tr className="border-b border-slate-300">
+                                <td className="p-2 font-semibold bg-slate-100 border-r border-slate-300">Meaningful (Kebermaknaan):<br/><span className="text-[11px] font-normal">Bagaimana saya bisa memanfaatkan ilmu matematika dan Bahasa Inggris dalam kehidupan nyata pertanian keluarga saya?</span></td>
+                                <td className="p-2 h-16 text-slate-400 italic">Tanggapan peserta didik...</td>
+                              </tr>
+                              <tr className="border-b border-slate-300">
+                                <td className="p-2 font-semibold bg-slate-100 border-r border-slate-300">Joyful (Kegembiraan):<br/><span className="text-[11px] font-normal">Momen mana dalam proyek ini yang paling menyenangkan dan membuat saya bangga dengan kelompok saya?</span></td>
+                                <td className="p-2 h-16 text-slate-400 italic">Tanggapan peserta didik...</td>
+                              </tr>
+                              <tr>
+                                <td className="p-2 font-semibold bg-slate-100 border-r border-slate-300">Tantangan & Perbaikan:<br/><span className="text-[11px] font-normal">Apa kendala terbesar yang saya hadapi dan apa yang akan saya perbaiki pada proyek berikutnya?</span></td>
+                                <td className="p-2 h-16 text-slate-400 italic">Tanggapan peserta didik...</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div className="p-3 border border-slate-300 rounded bg-slate-50">
+                          <p className="font-bold mb-2 text-blue-900">B. Lembar Refleksi Guru (Teacher Reflection)</p>
+                          <table className="w-full border-collapse border border-slate-300 bg-white">
+                            <tbody>
+                              <tr className="border-b border-slate-300">
+                                <td className="p-2 font-semibold bg-slate-100 w-1/3 border-r border-slate-300">Integrasi Lintas Mapel:<br/><span className="text-[11px] font-normal">Apakah alur sintaks PjBL sudah berjalan secara harmonis antar 5 mata pelajaran tanpa tumpang tindih beban murid?</span></td>
+                                <td className="p-2 h-16 text-slate-400 italic">Hasil refleksi & catatan perbaikan...</td>
+                              </tr>
+                              <tr className="border-b border-slate-300">
+                                <td className="p-2 font-semibold bg-slate-100 border-r border-slate-300">Penerapan Deep Learning:<br/><span className="text-[11px] font-normal">Sejauh mana prinsip Mindful, Meaningful, dan Joyful terealisasi dalam setiap fase kegiatan inti pembelajaran?</span></td>
+                                <td className="p-2 h-16 text-slate-400 italic">Hasil refleksi & catatan perbaikan...</td>
+                              </tr>
+                              <tr className="border-b border-slate-300">
+                                <td className="p-2 font-semibold bg-slate-100 border-r border-slate-300">Pencapaian Target Vokasi:<br/><span className="text-[11px] font-normal">Apakah hasil karya dan penguasaan materi murid sudah memenuhi ambang batas standar kompetensi industri/DUDI?</span></td>
+                                <td className="p-2 h-16 text-slate-400 italic">Hasil refleksi & catatan perbaikan...</td>
+                              </tr>
+                              <tr>
+                                <td className="p-2 font-semibold bg-slate-100 border-r border-slate-300">Rencana Tindak Lanjut (RTL):<br/><span className="text-[11px] font-normal">Modifikasi apa yang perlu diterapkan pada modul ajar ini untuk pelaksanaan semester depan?</span></td>
+                                <td className="p-2 h-16 text-slate-400 italic">Hasil refleksi & catatan perbaikan...</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* LAMPIRAN 7 */}
+                    <div className="mb-6">
+                      <h4 className="font-bold text-slate-800 mb-2 font-sans border-b pb-1">LAMPIRAN 7: BLANKO OBSERVASI DAN PENILAIAN NILAI KOSONG (READY TO PRINT)</h4>
+                      <div className="p-3 border border-slate-300 rounded text-xs space-y-4 bg-slate-50">
+                        <div>
+                          <p className="font-bold uppercase text-center mb-1">LEMBAR ASSESSMENT FORMATIF KINERJA LAPANGAN (BLANKO KOSONG)</p>
+                          <p className="mb-2"><b>Mata Pelajaran:</b> Konsentrasi Keahlian ATPH &nbsp;&nbsp;|&nbsp;&nbsp; <b>Kelas/Semester:</b> XI ATPH / Ganjil &nbsp;&nbsp;|&nbsp;&nbsp; <b>Hari/Tanggal:</b> ________________________________</p>
+                          <table className="w-full border-collapse border border-slate-300 text-center bg-white">
+                            <thead>
+                              <tr className="bg-slate-200">
+                                <th className="border border-slate-300 p-1 w-8">No</th>
+                                <th className="border border-slate-300 p-1">Nama Peserta Didik</th>
+                                <th className="border border-slate-300 p-1 w-20">NIS / NISN</th>
+                                <th className="border border-slate-300 p-1 w-24">Keterampilan K3LH (1-4)</th>
+                                <th className="border border-slate-300 p-1 w-24">Pengolahan Lahan (1-4)</th>
+                                <th className="border border-slate-300 p-1 w-24">Formulasi Bio-Pestisida (1-4)</th>
+                                <th className="border border-slate-300 p-1">Catatan Khusus Asesor/Guru</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {[1, 2, 3, 4, 5].map((n) => (
+                                <tr key={n}>
+                                  <td className="border border-slate-300 p-1">{n}</td>
+                                  <td className="border border-slate-300 p-1 text-left">&nbsp;</td>
+                                  <td className="border border-slate-300 p-1"></td>
+                                  <td className="border border-slate-300 p-1"></td>
+                                  <td className="border border-slate-300 p-1"></td>
+                                  <td className="border border-slate-300 p-1"></td>
+                                  <td className="border border-slate-300 p-1"></td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div className="pt-2">
+                          <p className="font-bold uppercase text-center mb-1">LEMBAR PENILAIAN GELAR KARYA / PITCHING PRESENTASI (BLANKO KOSONG)</p>
+                          <p className="mb-2"><b>Tanggal Gelar Karya:</b> ________________________________ &nbsp;&nbsp;|&nbsp;&nbsp; <b>Tim Penguji / Asesor:</b> ________________________________</p>
+                          <table className="w-full border-collapse border border-slate-300 text-center bg-white">
+                            <thead>
+                              <tr className="bg-slate-200">
+                                <th className="border border-slate-300 p-1 w-28">Kelompok</th>
+                                <th className="border border-slate-300 p-1">Kejelasan Presentasi B. Indonesia (1-10)</th>
+                                <th className="border border-slate-300 p-1">Penguasaan Hitungan BEP (1-10)</th>
+                                <th className="border border-slate-300 p-1">Estetika Kemasan & Brand (1-10)</th>
+                                <th className="border border-slate-300 p-1">Kualitas Pitching B. Inggris (1-10)</th>
+                                <th className="border border-slate-300 p-1">Keunggulan Produk Sayur (1-10)</th>
+                                <th className="border border-slate-300 p-1 w-20">Total Nilai Akhir</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {[1, 2, 3, 4].map((n) => (
+                                <tr key={n}>
+                                  <td className="border border-slate-300 p-1 font-semibold">Kelompok {n}</td>
+                                  <td className="border border-slate-300 p-1"></td>
+                                  <td className="border border-slate-300 p-1"></td>
+                                  <td className="border border-slate-300 p-1"></td>
+                                  <td className="border border-slate-300 p-1"></td>
+                                  <td className="border border-slate-300 p-1"></td>
+                                  <td className="border border-slate-300 p-1"></td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* LAMPIRAN 8 */}
+                    <div className="mb-8">
+                      <h4 className="font-bold text-slate-800 mb-2 font-sans border-b pb-1">LAMPIRAN 8: DAFTAR PUSTAKA</h4>
+                      <ul className="list-disc list-inside text-xs space-y-1 text-slate-700">
+                        <li>Badan Standar, Kurikulum, dan Asesmen Pendidikan (BSKAP). (2025). <i>Keputusan Kepala BSKAP Nomor 046/H/KR/2025 tentang Capaian Pembelajaran pada Kurikulum Merdeka</i>. Kementerian Pendidikan Dasar dan Menengah.</li>
+                        <li>Direktorat Jenderal Pendidikan Vokasi. (2025). <i>Panduan Pembelajaran dan Asesmen (PPA) Edisi Revisi Tahun 2025</i>. Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi.</li>
+                        <li>Suryani, L., & Pratama, A. (2023). <i>Inovasi Agriteknologi dan Agribisnis Hortikultura Berkelanjutan</i>. Jurnal Vokasi Pertanian, 12(2), 145-159.</li>
+                      </ul>
+                    </div>
+
+                    {/* LEMBAR PENGESAHAN */}
+                    <div className="mt-12 pt-6 border-t border-slate-400 text-xs">
+                      <table className="w-full">
+                        <tbody>
+                          <tr>
+                            <td className="w-1/2 align-top">
+                              <p>Mengetahui,</p>
+                              <p className="font-bold mb-16">Kepala Sekolah</p>
+                              <p className="font-bold underline">{formData.kepalaSekolah}</p>
+                              <p>NIP. {formData.nipKepalaSekolah}</p>
+                            </td>
+                            <td className="w-1/2 align-top">
+                              <p>Retraen, {formData.tanggalPenyusunan}</p>
+                              <p className="font-bold mb-2">Guru Mata Pelajaran Kolaborasi:</p>
+                              <ol className="list-decimal list-inside space-y-8">
+                                {formData.timPenyusun.map((g, i) => (
+                                  <li key={i} className="font-medium">
+                                    <span className="underline">{g.nama}</span> <br/>
+                                    <span className="text-slate-600 pl-4">NIP. {g.nip}</span>
+                                  </li>
+                                ))}
+                              </ol>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* Footer */}
+          <footer className="bg-slate-900 text-slate-400 border-t border-slate-800 py-4 text-center text-xs no-print">
+            <div className="max-w-7xl mx-auto px-4">
+              <p>© 2026 Modul Ajar Pembelajaran Proyek Kolaborasi Mapel-Kurikulum Merdeka - SMKN 1 Amarasi Selatan</p>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
